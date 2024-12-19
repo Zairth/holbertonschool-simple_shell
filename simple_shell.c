@@ -80,14 +80,18 @@ int get_command(char **argv)
 	{
 		char *_path = "/bin/";
 		char buffer[100];
+		char *new_argv0;
 
-		argv[0] = realloc(argv[0], _strlen(_path) + _strlen(argv[0]) + 1);
-		if (argv[0] == NULL)
+		new_argv0 = malloc(_strlen(_path) + _strlen(argv[0]) + 1);
+		if (new_argv0 == NULL)
 			return (-1);
 
 		_strcpy(buffer, argv[0]);
-		_strcpy(argv[0], _path);
-		_strcat(argv[0], buffer);
+		_strcpy(new_argv0, _path);
+		_strcat(new_argv0, buffer);
+
+		free(argv[0]);
+		argv[0] = new_argv0;
 	}
 
 	if (access(argv[0], F_OK) != 0)
@@ -108,6 +112,7 @@ int get_command(char **argv)
 
 	return (0);
 }
+
 
 /**
  * _get_line - get the line (stdin) and split it into tokens
