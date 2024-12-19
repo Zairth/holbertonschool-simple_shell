@@ -18,6 +18,7 @@ int main(void)
 		char **argv = NULL;
 		char *line = NULL;
 		int status;
+		int return_get_cmd;
 
 		printf("$ ");
 
@@ -35,13 +36,23 @@ int main(void)
 			break;
 		}
 
-		get_command(argv);
+		return_get_cmd = get_command(argv);
+		if (return_get_cmd == 50)
+		{
+			free(argv);
+			free(line);
+			break;
+		}
+		else if (return_get_cmd == -1)
+			continue;
+		else
+		{
+			wait(&status);
+			_wait_status(status);
 
-		wait(&status);
-		_wait_status(status);
-
-		free(argv);
-		free(line);
+			free(argv);
+			free(line);
+		}
 	}
 
 	return (0);
@@ -84,6 +95,18 @@ int get_command(char **argv)
 		_strcpy(buffer, argv[0]);
 		_strcpy(argv[0], _path);
 		_strcat(argv[0], buffer);
+	}
+
+
+	if (_strcmp(argv[0], "exit") == 0)
+	{
+		return (50);
+	}
+
+	if (access(argv[0], F_OK) != 0)
+	{
+		printf("./simpleShell: No such file or directory\n");
+		return (-1);
 	}
 
 	pid = fork();
