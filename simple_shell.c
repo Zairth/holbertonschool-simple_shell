@@ -17,10 +17,9 @@ int main(void)
 	{
 		char **argv = NULL;
 		char *line = NULL;
-		int status;
-		int return_get_cmd;
+		int status, get_cmd_return;
 
-		printf("$ ");
+		printf("#Killing_Spree$ ");
 
 		argv = _get_line(&line);
 		if (argv == NULL)
@@ -29,23 +28,14 @@ int main(void)
 			return (-1);
 		}
 
-		if (_strcmp(argv[0], "exit") == 0)
+		get_cmd_return = get_command(argv);
+		if (get_cmd_return == 50)
 		{
 			free(argv);
 			free(line);
 			break;
 		}
-
-		return_get_cmd = get_command(argv);
-		if (return_get_cmd == 50)
-		{
-			free(argv);
-			free(line);
-			break;
-		}
-		else if (return_get_cmd == -1)
-			continue;
-		else
+		else if (get_cmd_return == 0)
 		{
 			wait(&status);
 			_wait_status(status);
@@ -83,6 +73,9 @@ int get_command(char **argv)
 {
 	pid_t pid;
 
+	if (_strcmp(argv[0], "exit") == 0)
+		return (50);
+
 	if (argv[0][0] != '/')
 	{
 		char *_path = "/bin/";
@@ -95,12 +88,6 @@ int get_command(char **argv)
 		_strcpy(buffer, argv[0]);
 		_strcpy(argv[0], _path);
 		_strcat(argv[0], buffer);
-	}
-
-
-	if (_strcmp(argv[0], "exit") == 0)
-	{
-		return (50);
 	}
 
 	if (access(argv[0], F_OK) != 0)
