@@ -19,7 +19,7 @@ int main(void)
 		char *line = NULL;
 		int status, get_cmd_return;
 
-		printf("#Killing_Spree$ ");
+		printf("#simple_shell$ ");
 
 		argv = _get_line(&line);
 		if (argv == NULL)
