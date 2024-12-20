@@ -90,7 +90,6 @@ int get_command(char **argv)
 		_strcpy(new_argv0, _path);
 		_strcat(new_argv0, buffer);
 
-		free(argv[0]);
 		argv[0] = new_argv0;
 	}
 
