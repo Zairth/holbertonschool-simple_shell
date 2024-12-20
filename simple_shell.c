@@ -39,10 +39,9 @@ int main(void)
 		{
 			wait(&status);
 			_wait_status(status);
-
-			free(argv);
-			free(line);
 		}
+		free(argv);
+		free(line);
 	}
 
 	return (0);
@@ -92,26 +91,26 @@ int get_command(char **argv)
 
 		argv[0] = new_argv0;
 	}
-
 	if (access(argv[0], F_OK) != 0)
 	{
-		printf("./simpleShell: No such file or directory\n");
+		perror("./simple_shell");
 		return (-1);
 	}
-
 	pid = fork();
 	if (pid == -1)
-	{
-		perror("Error Fork");
-		exit(-1);
-	}
+		perror("Error"), exit(EXIT_FAILURE);
 
 	if (pid == 0)
-		execve(argv[0], argv, NULL);
+	{
+		if (execve(argv[0], argv, NULL) == -1)
+		{
+			perror("Error");
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	return (0);
 }
-
 
 /**
  * _get_line - get the line (stdin) and split it into tokens
@@ -136,6 +135,9 @@ char **_get_line(char **line)
 		perror("Malloc failed");
 		exit(1);
 	}
+	if (bytes_read == -1)
+		free(*line), printf("\n"), exit(0);
+
 	token = strtok(*line, " ");
 	while (token != NULL)
 	{
@@ -145,17 +147,13 @@ char **_get_line(char **line)
 			char **new_array = malloc(sizeof(char *) * capacity);
 
 			if (new_array == NULL)
-			{
-				perror("Malloc failed");
-				exit(1);
-			}
+				perror("Malloc failed"), exit(1);
+
 			for (int j = 0; j < i; j++)
 				new_array[j] = array[j];
-			free(array);
-			array = new_array;
+			free(array), array = new_array;
 		}
-		array[i] = token;
-		i++;
+		array[i] = token, i++;
 		token = strtok(NULL, " ");
 	}
 	array[i] = NULL;
