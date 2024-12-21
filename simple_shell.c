@@ -33,7 +33,7 @@ int main(void)
 		{
 			free(argv);
 			free(line);
-			break;
+			exit(0);
 		}
 		else if (get_cmd_return == 0)
 		{
@@ -54,13 +54,35 @@ int main(void)
  */
 int _wait_status(int status)
 {
-	if (status == -1)
+	if (WIFEXITED(status))
 	{
-		perror("Error waiting child");
-		return (-1);
+		int exit_status = WEXITSTATUS(status);
+
+		if (exit_status == 0)
+		{
+			return (0);
+		} else if (exit_status != 0)
+		{
+			fprintf(stderr, "Error: Command failed with exit code %d\n", exit_status);
+			return (exit_status);
+		}
+	}
+	else if (WIFSIGNALED(status))
+	{
+		int signal_number = WTERMSIG(status);
+
+		fprintf(stderr, "Error: Command terminated by signal %d\n", signal_number);
+		return (signal_number + 128);
+	}
+	else if (WIFSTOPPED(status))
+	{
+		int signal_number = WSTOPSIG(status);
+
+		fprintf(stderr, "Error: Command stopped by signal %d\n", signal_number);
+		return (signal_number + 128);
 	}
 
-	return (0);
+	return (-1);
 }
 
 /**
@@ -71,6 +93,7 @@ int _wait_status(int status)
 int get_command(char **argv)
 {
 	pid_t pid;
+	char *new_argv0 = NULL;
 
 	if (_strcmp(argv[0], "exit") == 0)
 		return (50);
@@ -78,33 +101,32 @@ int get_command(char **argv)
 	if (argv[0][0] != '/')
 	{
 		char *_path = "/bin/";
-		char buffer[100];
-		char *new_argv0;
+		char buffer[100] = {0};
 
 		new_argv0 = malloc(_strlen(_path) + _strlen(argv[0]) + 1);
 		if (new_argv0 == NULL)
 			return (-1);
 
-		_strcpy(buffer, argv[0]);
-		_strcpy(new_argv0, _path);
+		_strcpy(buffer, argv[0]), _strcpy(new_argv0, _path);
 		_strcat(new_argv0, buffer);
 
 		argv[0] = new_argv0;
 	}
 	if (access(argv[0], F_OK) != 0)
 	{
-		perror("./simple_shell");
+		fprintf(stderr, "./simple_shell: 1: %s: not found\n", argv[0]);
+		free(new_argv0);
 		return (-1);
 	}
 	pid = fork();
 	if (pid == -1)
-		perror("Error"), exit(EXIT_FAILURE);
+		perror("Error"), exit(EXIT_FAILURE), free(argv);
 
 	if (pid == 0)
 	{
 		if (execve(argv[0], argv, NULL) == -1)
 		{
-			perror("Error");
+			perror("Error"), free(argv);
 			exit(EXIT_FAILURE);
 		}
 	}
